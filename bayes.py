@@ -1,4 +1,5 @@
 from factor import *
+from util import compute_elimination_order
 class BayesianNetwork:
     """Represents a Bayesian network by its factors, i.e. the conditional probability tables (CPTs).
 
@@ -38,7 +39,6 @@ def eliminate(bnet, variable):
         a new BayesianNetwork, equivalent to the current Bayesian network, after
         eliminating the specified variable
     """
-    
     relevant_facs = list()
     excluded_facs = list()
     new_domain = dict()
@@ -46,7 +46,11 @@ def eliminate(bnet, variable):
         if variable in factor.variables:
             relevant_facs.append(factor)
         else:
-            excluded_facs.append(factor)
+            excluded_facs.append(factor) #excluding factors without the variable we're looking for
+
+    if not relevant_facs: #in case the network doesnt have any factors with the given variable
+        return bnet
+    
     multiplied_fac = multiply_factors(relevant_facs, bnet.domains)
     marginalized_fac = marginalize(multiplied_fac, variable)
     new_facs = excluded_facs + [marginalized_fac]
@@ -67,7 +71,12 @@ def compute_marginal(bnet, vars):
     vars : set[str]
         the variables that we want to compute the marginal over
     """
-    # TODO: Implement this for Question Five.
+    #COPIED FROM HANDOUT
+    elim_order, _ = compute_elimination_order(bnet)
+    revised_elim_order = [var for var in elim_order if var not in vars]
+    for var in revised_elim_order:
+        bnet = eliminate(bnet, var)
+    return multiply_factors(bnet.factors, bnet.domains)
     
     
 def compute_conditional(bnet, event, evidence):
