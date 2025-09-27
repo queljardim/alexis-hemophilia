@@ -1,3 +1,5 @@
+import itertools
+
 class Factor:
     def __init__(self, variables, values):
         self.variables = variables
@@ -24,12 +26,49 @@ class Factor:
 
 
 def events(vars, domains):
-    """TODO: Implement this for Question One."""
-
+    all_values = []
+    events = []
+    all_values += [domains[var] for var in vars] #list of lists
+    for combo in itertools.product(*all_values): #tuples like ("P", "yes")
+        events.append(dict(zip(vars,combo)))
+    return events
 
 def marginalize(factor, variable):
-    """TODO: Implement this for Question Two."""
-
+    new_values = dict()
+    new_variables = [v for v in factor.variables if v != variable]
+    
+    for combo, val in factor.values.items():
+        combo_dict = dict(zip(factor.variables, combo))
+        combo_dict.pop(variable)
+        new_key = tuple(combo_dict[v] for v in new_variables)
+        new_values[new_key] = new_values.get(new_key, 0) + val
+    return Factor(new_variables, new_values)
 
 def multiply_factors(factors, domains):
-    """TODO: Implement this for Question Three."""
+    new_values = dict() #probabilities for assign: ("yes", "u", etc): float
+    all_vars = [v for v in domains.keys() if any(v in f.variables for f in factors)] #preserve order in domains
+    joint_events = events(all_vars, domains) #all possible ass in all_vars
+    for event in joint_events:
+        product_val = 1.0
+        for factor in factors:
+            sub = {var: event[var] for var in factor.variables}
+            factor_val = factor[sub] #look up probability
+            product_val *= factor_val
+        new_key = tuple(event[var] for var in all_vars) #same order as all vars
+        new_values[new_key] = product_val
+    return Factor(all_vars, new_values)
+
+
+def create_goat_cpt():
+    vars = ['C', 'G']
+    probs = {('1', '2'): 0.5, ('1', '3',): 0.5,
+             ('2', '2'): 0, ('2', '3',): 1,
+             ('3', '2'): 1, ('3', '3',): 0}
+    return Factor(vars, probs)
+
+
+def create_finalchoice_cpt():
+    vars = ['G', 'F']
+    probs = {('2', '1'): 0, ('2', '2'): 0, ('2', '3',): 1,
+             ('3', '1'): 0, ('3', '2'): 1, ('3', '3',): 0}
+    return Factor(vars, probs)

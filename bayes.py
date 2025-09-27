@@ -1,3 +1,4 @@
+from factor import *
 class BayesianNetwork:
     """Represents a Bayesian network by its factors, i.e. the conditional probability tables (CPTs).
 
@@ -37,7 +38,23 @@ def eliminate(bnet, variable):
         a new BayesianNetwork, equivalent to the current Bayesian network, after
         eliminating the specified variable
     """
-    # TODO: Implement this for Question Four.
+    
+    relevant_facs = list()
+    excluded_facs = list()
+    new_domain = dict()
+    for factor in bnet.factors:
+        if variable in factor.variables:
+            relevant_facs.append(factor)
+        else:
+            excluded_facs.append(factor)
+    multiplied_fac = multiply_factors(relevant_facs, bnet.domains)
+    marginalized_fac = marginalize(multiplied_fac, variable)
+    new_facs = excluded_facs + [marginalized_fac]
+    new_domain = {k: val for k, val in bnet.domains.items() if k != variable}
+    new_bnet = BayesianNetwork(new_facs, new_domain)
+
+    return new_bnet 
+
 
 
 def compute_marginal(bnet, vars):
