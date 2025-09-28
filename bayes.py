@@ -46,15 +46,12 @@ def eliminate(bnet, variable):
         if variable in factor.variables:
             relevant_facs.append(factor)
         else:
-            excluded_facs.append(factor) #excluding factors without the variable we're looking for
-
-    if not relevant_facs: #in case the network doesnt have any factors with the given variable
-        return bnet
+            excluded_facs.append(factor)
     
-    multiplied_fac = multiply_factors(relevant_facs, bnet.domains)
-    marginalized_fac = marginalize(multiplied_fac, variable)
-    new_facs = excluded_facs + [marginalized_fac]
-    new_domain = {k: val for k, val in bnet.domains.items() if k != variable}
+    multiplied_fac = multiply_factors(relevant_facs, bnet.domains) #joint fac variable + friends
+    marginalized_fac = marginalize(multiplied_fac, variable) #sum out variable but keep its love
+    new_facs = excluded_facs + [marginalized_fac] #untainted by var + summed out
+    new_domain = {k: val for k, val in bnet.domains.items() if k != variable} #new domain without variable
     new_bnet = BayesianNetwork(new_facs, new_domain)
 
     return new_bnet 
@@ -81,4 +78,11 @@ def compute_marginal(bnet, vars):
     
 def compute_conditional(bnet, event, evidence):
     """Computes the conditional probability of an event given the evidence event."""
-    # TODO: Implement this for Question Five.
+
+    joint_vars = set(event.keys()) | set(evidence.keys()) #what we care about
+    joint_factor = compute_marginal(bnet, joint_vars) #eliminate everything different
+    evidence_factor = compute_marginal(bnet, evidence.keys()) #P(evidence) only
+    assignment = {**event, **evidence} ##merges two dicts
+    numerator = joint_factor[assignment]
+    denominator = evidence_factor[evidence]
+    return numerator / denominator

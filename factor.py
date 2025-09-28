@@ -35,13 +35,13 @@ def events(vars, domains):
 
 def marginalize(factor, variable):
     new_values = dict()
-    new_variables = [v for v in factor.variables if v != variable]
+    new_variables = [v for v in factor.variables if v != variable] #all vars but excluded
     
-    for combo, val in factor.values.items():
-        combo_dict = dict(zip(factor.variables, combo))
-        combo_dict.pop(variable)
-        new_key = tuple(combo_dict[v] for v in new_variables)
-        new_values[new_key] = new_values.get(new_key, 0) + val
+    for combo, val in factor.values.items(): #pair of variables + likelihood 
+        combo_dict = dict(zip(factor.variables, combo)) #zip vars with combos
+        combo_dict.pop(variable) #take out unwanted var
+        new_key = tuple(combo_dict[v] for v in new_variables) #make new key with variable
+        new_values[new_key] = new_values.get(new_key, 0) + val #add likelihoods for the variables
     return Factor(new_variables, new_values)
 
 def multiply_factors(factors, domains):
@@ -49,10 +49,10 @@ def multiply_factors(factors, domains):
     all_vars = [v for v in domains.keys() if any(v in f.variables for f in factors)] #preserve order in domains
     joint_events = events(all_vars, domains) #all possible ass in all_vars
     for event in joint_events:
-        product_val = 1.0
+        product_val = 1.0 #neutral
         for factor in factors:
             sub = {var: event[var] for var in factor.variables}
-            factor_val = factor[sub] #look up probability
+            factor_val = factor[sub] #look up probability using dictionary {VAR:X, VAR:Y}
             product_val *= factor_val
         new_key = tuple(event[var] for var in all_vars) #same order as all vars
         new_values[new_key] = product_val
