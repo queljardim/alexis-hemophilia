@@ -114,7 +114,7 @@ def create_hemophilia_cpt(person):
     probs = {
         ("Xx", "-"): 1,
         ("Xx", "+"): 0,
-        ("xX", "-"): 1,
+        ("xX", "-"): 1, ##tests complain otherwise
         ("xX", "+"): 0,
         ("xx", "-"): 1,
         ("xx", "+"): 0,
@@ -141,7 +141,43 @@ def create_genotype_cpt(person):
     Factor
         a Factor specifying the probability of a genotype, given one's inherited genes
     """
-    # TODO: Implement this for Question Eight.
+
+    person_genotype = f"G_{person.get_name()}"
+    maternal_genotype = f"M_{person.get_name()}"
+    paternal_genotype = f"P_{person.get_name()}"
+    probs_male ={
+        ("x", "xy"): 1,
+        ("X", "xy"): 0,
+
+        ("X", "Xy"): 1,
+        ("x", "Xy"): 0,
+    }
+
+    probs_female = {
+    ("x", "x", "xx"): 1,
+    ("x", "x", "xX"): 0,
+    ("x", "x", "XX"): 0,
+
+    ("x", "X", "xx"): 0,
+    ("x", "X", "xX"): 1,
+    ("x", "X", "XX"): 0,
+
+    ("X", "X", "xx"): 0,
+    ("X", "X", "xX"): 0,
+    ("X", "X", "XX"): 1,
+
+    ("X", "x", "xx"): 0,
+    ("X", "x", "xX"): 1,
+    ("X", "x", "XX"): 0,
+}
+
+
+    if person.get_sex() == "female":
+        return Factor([paternal_genotype, maternal_genotype, person_genotype], probs_female)
+    else:
+        return Factor([maternal_genotype, person_genotype], probs_male)
+
+
 
 
 def create_maternal_inheritance_cpt(person):
