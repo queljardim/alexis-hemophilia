@@ -1,4 +1,5 @@
 from bayes import BayesianNetwork
+from factor import *
 
 
 class FamilyMember:
@@ -81,7 +82,17 @@ def create_variable_domains(family):
     dict[str, list[str]]
         a dictionary mapping each variable to its domain (i.e. its possible values)
     """
-    # TODO: Implement this for Question Six.
+    domain = dict()
+    for member in family:
+        name = member.get_name()
+        domain[f"M_{name}"] = ['x', 'X']
+        domain[f"H_{name}"] = ["-", "+"]
+        if member.get_sex() == "female":
+            domain[f"P_{name}"] = ['x','X']
+            domain[f"G_{name}"] = ['xx', 'xX', 'XX']
+        else:
+            domain[f"G_{name}"] = ['xy', 'Xy']
+    return domain
 
 
 def create_hemophilia_cpt(person):
@@ -97,7 +108,24 @@ def create_hemophilia_cpt(person):
     Factor
         a Factor specifying the probability of hemophilia, given one's genotype
     """
-    # TODO: Implement this for Question Seven.
+
+    hemophilia = f"H_{person.get_name()}"
+    person_genotype = f"G_{person.get_name()}"
+    probs = {
+        ("Xx", "-"): 1,
+        ("Xx", "+"): 0,
+        ("xX", "-"): 1,
+        ("xX", "+"): 0,
+        ("xx", "-"): 1,
+        ("xx", "+"): 0,
+        ("XX", "-"): 0,
+        ("XX", "+"): 1,
+        ("Xy", "-"): 0,
+        ("Xy", "+"): 1,
+        ("xy", "-"): 1,
+        ("xy", "+"): 0,
+    }
+    return Factor([person_genotype, hemophilia], probs)
 
 
 def create_genotype_cpt(person):
